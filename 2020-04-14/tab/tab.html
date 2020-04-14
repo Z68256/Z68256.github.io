@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: #dedede;
+        }
+
+        #view {
+            width: 1500px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        #view div {
+            position: absolute;
+            /* 6   1320  180  36 */
+            width: 220px;
+        }
+
+        #view img {
+            width: 220px;
+            display: block;
+        }
+
+        #view h5 {
+            background: white;
+            padding: 10px;
+            color: #666
+        }
+    </style>
+</head>
+
+<body>
+    <div id="view">
+    </div>
+</body>
+<script src="data.js"></script>
+<script>
+    // 瀑布流流程
+    // 初始化集合 记录每列信息
+    // for循环单个添加元素
+    // 添加时对数组进行排序 找出最低的那列 根据 col h 换算元素left top
+    // 添加完毕 更新当前列的高度
+    // 子元素定位脱离文档流 取最高那列h赋值给父元素
+
+
+
+
+
+    function render(x) {
+
+        // 清除之前的内容
+        view.innerHTML="";
+        // 设置view容器宽度
+        view.style.width=220*x+36*(x-1)+"px"
+
+        // 图片加载完成 才会产生真实占位
+        // 预先知道图片高度
+        var cols = [];
+        for (var i = 0; i < x; i++) {
+            cols.push({
+                col: i,
+                h: 0
+            })
+        }
+
+        // sort
+
+        for (var i = 0; i < list.length; i++) {
+
+            // 数组升序排列 按照h排序 找出最低的那一列
+            cols.sort(function (a, b) {
+                if (a.h > b.h) {
+                    return 1
+                } else {
+                    return -1
+                }
+            })
+
+            var node = document.createElement("div");
+
+            node.style.left = cols[0].col * (220 + 36) + "px";
+            node.style.top = cols[0].h + "px";
+
+            // innerHTML
+            node.innerHTML = "<img src='" + list[i].img_url + "'/> <h5>" + list[i].title + "</h5>"
+
+
+            view.appendChild(node);
+
+            // 更新当前列的高度
+            var str = list[i].img_url.split("?")[1].split("x");
+            // 图片原始宽高
+            var img_w = parseInt(str[0]);
+            var img_h = parseInt(str[1]);
+            // 页面中图片高度
+            var H = 220 * img_h / img_w;
+
+            // 获取文本高度  (获取非行内css样式)
+            var text_h = parseFloat(getComputedStyle(node.children[1], null).height)
+
+            cols[0].h += H + 36 + text_h + 20;
+
+        }
+
+        // 设置父容器高度
+        cols.sort(function (a, b) {
+            if (a.h < b.h) {
+                return 1
+            } else {
+                return -1
+            }
+        })
+
+        view.style.height = cols[0].h + "px";
+    }
+
+
+    var timer;
+
+    function Init(){//当调整窗口大小时
+
+        clearTimeout(timer);
+
+        timer=setTimeout(function(){
+            // 获取窗口宽度
+            var W=window.innerWidth||document.body.clientWidth||document.documentElement.clientWidth;
+
+            if(W>1500){
+                render(6)
+            }else if(W>1244){
+                render(5)
+            }else{
+                render(4)
+            }
+        },100)
+
+    }
+    // 初始进入时
+    Init();
+    // 调整窗口大小时
+    window.onresize=Init
+</script>
+
+</html>
